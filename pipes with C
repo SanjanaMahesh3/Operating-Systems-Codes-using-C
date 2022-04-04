@@ -1,0 +1,59 @@
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<stdlib.h>
+#include<string.h>
+//0 is the read end
+//1 is the write end
+int main(int arcgc,char* argv[])
+{
+pid_t p;
+char String1[10000]="";
+int fd[2];
+char ch;
+int i=0;
+char buff[10000];
+FILE *ptr;
+if(pipe(fd)==-1)
+{
+printf("Error in pipe creation\n");
+exit(0);
+}
+p=fork();
+if(p<0)
+{
+printf("Error in forking\n");
+}
+if(p==0)
+{
+printf("Child process\n");
+int count=0;
+close(fd[1]);
+read(fd[0],String1,10000);
+printf("%s\n",String1);
+char *tok=strtok(String1," ");
+//printf("%s\n",tok);
+while(tok!=NULL)
+{
+count++;
+tok=strtok(NULL," ");
+}
+printf("Word count %d\n",count);
+close(fd[0]);
+}
+if(p>0)
+{printf("Parent process Contents of file are \n");
+ptr=fopen(argv[1],"r");
+do{
+ch=getc(ptr);
+buff[i]=ch;
+i++;
+}while(ch!=EOF);
+close(fd[0]);
+write(fd[1],buff,strlen(buff)+1);
+close(fd[1]);
+wait(NULL);
+fclose(ptr);
+}
+}
